@@ -3,208 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PomoDag 3.5 — Focus & Prayer</title>
+    <title>PomoDag 3.8 — Full Control</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f8f9fa; --text: #34495e; --alert-color: #2980b9; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); }
-        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 480px; border: 1px solid #eee; position: relative; }
+        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; --text: #34495e; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.07); width: 100%; max-width: 420px; border: 1px solid #eee; position: relative; }
         
-        .settings-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 20px; color: #bdc3c7; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        #clock { font-size: 56px; font-weight: 800; color: var(--primary); letter-spacing: -2px; }
-        
-        /* Overlay Alert */
-        #visual-alert { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255, 255, 255, 0.98); display: none; 
-            flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 999; text-align: center; 
-        }
-        .alert-content { padding: 40px; border-radius: 30px; border: 4px solid var(--alert-color); background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        .btn-close-alert { background: var(--alert-color); color: white; border: none; padding: 15px 40px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 20px; }
+        .settings-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 22px; color: #bdc3c7; transition: 0.3s; z-index: 10; }
+        .settings-toggle:hover { color: var(--primary); }
 
-        #offset-panel { background: #f1f3f4; border-radius: 10px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; }
-        #offset-panel.open { max-height: 80px; padding: 10px; margin-bottom: 20px; }
-        #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 4px; }
+        #clock { font-size: 52px; font-weight: 800; text-align: center; color: var(--primary); letter-spacing: -1px; margin-bottom: 5px; }
+        #date { text-align: center; font-size: 12px; color: #95a5a6; text-transform: uppercase; margin-bottom: 20px; }
+        
+        /* Панель корректировки времени */
+        #offset-panel { background: #f8f9fa; border-radius: 12px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; border: 0 solid #eee; }
+        #offset-panel.open { max-height: 100px; padding: 15px; margin-bottom: 20px; border-width: 1px; }
+        #offset-panel div { text-align: center; }
+        #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; margin-top: 5px; }
 
         .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 25px; }
-        .p-card { background: #fdfdfd; padding: 10px 2px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
-        .p-card b { display: block; font-size: 13px; margin: 4px 0; color: #222; }
-        .p-card .label { font-size: 9px; font-weight: bold; color: #95a5a6; text-transform: uppercase; }
+        .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .p-card span { font-size: 9px; font-weight: bold; color: #95a5a6; text-transform: uppercase; display: block; }
+        .p-card b { font-size: 13px; color: #2c3e50; margin-top: 4px; display: block; }
 
-        .timer-section { text-align: center; background: #fafafa; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #eee; }
-        #main-timer { font-size: 64px; font-weight: bold; color: var(--accent); line-height: 1; }
+        .timer-box { text-align: center; background: #fafafa; padding: 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #eee; }
+        #main-timer { font-size: 68px; font-weight: bold; color: var(--accent); line-height: 1; }
+        #status-bar { font-size: 11px; font-weight: 700; color: #7f8c8d; margin-top: 10px; text-transform: uppercase; }
 
-        .input-group { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        input, select { background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; outline: none; margin-bottom: 5px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        .input-area { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        input[type="text"], input[type="time"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
+        .btn-add:hover { background: #1a252f; }
 
-        .task-list { list-style: none; padding: 0; }
-        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; font-size: 14px; }
-        .task-item.done { opacity: 0.4; text-decoration: line-through; }
-        
-        #audio-unlock { 
-            position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; 
-            background: #e74c3c; color: white; font-size: 10px; border-radius: 5px; 
-            cursor: pointer; z-index: 100; 
-        }
+        .task-list { list-style: none; padding: 0; margin: 0; }
+        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
+        .btn-del { color: #e74c3c; border: none; background: none; cursor: pointer; font-weight: bold; }
+
+        #init-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="audio-unlock" onclick="this.style.display='none'">🔔 Нажми здесь для звука</div>
-
-<div id="visual-alert">
-    <div class="alert-content">
-        <p id="alert-type-label" style="font-weight: bold; color: #7f8c8d;">ВНИМАНИЕ</p>
-        <h1 id="alert-title">НАМАЗ</h1>
-        <button class="btn-close-alert" id="btn-close-text" onclick="closeAlert()">ПРИНЯТО</button>
-    </div>
-</div>
-
 <div class="container">
-    <div class="settings-toggle" onclick="toggleSettings()">⚙</div>
-    <div class="header">
-        <div id="clock">00:00:00</div>
-        <div id="date" style="font-size: 12px; color: #95a5a6;">MAKH v3.5</div>
-    </div>
+    <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
+    
+    <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ</button>
+
+    <div id="clock">00:00:00</div>
+    <div id="date">ЗАГРУЗКА...</div>
 
     <div id="offset-panel">
-        <div>Фад<br><input type="number" id="off1" value="0" oninput="fetchPrayers()"></div>
-        <div>Зух<br><input type="number" id="off2" value="0" oninput="fetchPrayers()"></div>
-        <div>Аср<br><input type="number" id="off3" value="0" oninput="fetchPrayers()"></div>
-        <div>Маг<br><input type="number" id="off4" value="0" oninput="fetchPrayers()"></div>
-        <div>Иша<br><input type="number" id="off5" value="0" oninput="fetchPrayers()"></div>
+        <div>Фад<br><input type="number" id="off1" value="0" onchange="fetchPrayers()"></div>
+        <div>Зух<br><input type="number" id="off2" value="0" onchange="fetchPrayers()"></div>
+        <div>Аср<br><input type="number" id="off3" value="0" onchange="fetchPrayers()"></div>
+        <div>Маг<br><input type="number" id="off4" value="0" onchange="fetchPrayers()"></div>
+        <div>Иша<br><input type="number" id="off5" value="0" onchange="fetchPrayers()"></div>
     </div>
 
     <div class="prayer-grid" id="prayer-cards"></div>
 
-    <div class="timer-section">
+    <div class="timer-box">
         <div id="main-timer">00:00</div>
-        <div id="status-bar" style="font-size: 12px; font-weight: 600; margin-top: 5px;">ГОТОВ К РАБОТЕ</div>
+        <div id="status-bar">ОЖИДАНИЕ</div>
     </div>
 
-    <div class="input-group">
-        <input type="text" id="tName" placeholder="Что делаем?" style="width: 95%;">
-        <div style="display: flex; gap: 5px;">
+    <div class="input-area">
+        <input type="text" id="tName" placeholder="Задача (напр. Контент для Berbena)">
+        <div style="display: flex; gap: 8px;">
             <input type="time" id="tTime" style="flex: 2;">
             <input type="number" id="tDur" placeholder="Мин" style="flex: 1;">
-            <select id="tRepeat" style="flex: 1.5;">
-                <option value="none">Разово</option>
-                <option value="daily">Каждый день</option>
-                <option value="weekdays">Будни</option>
-            </select>
         </div>
-        <button class="btn-add" onclick="addTask()">ДОБАВИТЬ ЗАДАЧУ</button>
+        <button class="btn-add" onclick="addTask()">ДОБАВИТЬ В ПЛАН</button>
     </div>
+
     <ul id="taskList" class="task-list"></ul>
 </div>
 
 <script>
     let prayerTimes = {};
-    let tasks = JSON.parse(localStorage.getItem('pomo_v35_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('pomo_v38_tasks')) || [];
     let activeInterval = null;
-    let pendingTaskIdx = null;
+    let alertsActive = false;
 
-    function toggleSettings() { document.getElementById('offset-panel').classList.toggle('open'); }
-
-    async function fetchPrayers() {
-        const off = [document.getElementById('off1').value, document.getElementById('off2').value, document.getElementById('off3').value, document.getElementById('off4').value, document.getElementById('off5').value];
-        const url = `https://api.aladhan.com/v1/timingsByCity?city=Makhachkala&country=Russia&method=3&tune=${off[0]},0,${off[1]},${off[2]},0,${off[3]},0,${off[4]}`;
-        try {
-            const res = await fetch(url);
-            const d = await res.json();
-            prayerTimes = { 'Фаджр': d.data.timings.Fajr, 'Зухр': d.data.timings.Dhuhr, 'Аср': d.data.timings.Asr, 'Магриб': d.data.timings.Maghrib, 'Иша': d.data.timings.Isha };
-            renderUI();
-        } catch (e) { console.error("API Error"); }
-    }
-
-    function renderUI() {
-        const grid = document.getElementById('prayer-cards');
-        grid.innerHTML = '';
-        Object.entries(prayerTimes).forEach(([name, time]) => {
-            grid.innerHTML += `<div class="p-card"><div class="label">${name}</div><b>${time}</b></div>`;
-        });
-        renderTasks();
-    }
-
-    function showVisualAlert(type, title, isTask, idx = null) {
-        const alertEl = document.getElementById('visual-alert');
-        document.getElementById('alert-type-label').innerText = type;
-        document.getElementById('alert-title').innerText = title;
-        document.getElementById('btn-close-text').innerText = isTask ? "ПРИСТУПАЮ" : "ПОНЯЛ";
-        document.documentElement.style.setProperty('--alert-color', isTask ? '#2980b9' : '#e67e22');
-        pendingTaskIdx = isTask ? idx : null;
-        alertEl.style.display = 'flex';
+    function activateAlerts() {
+        alertsActive = true;
+        document.getElementById('init-btn').style.display = 'none';
+        if ("Notification" in window) {
+            Notification.requestPermission().then(p => {
+                if(p === "granted") new Notification("PomoDag", { body: "Уведомления и звук активированы" });
+            });
+        }
         new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
     }
 
-    function closeAlert() {
-        document.getElementById('visual-alert').style.display = 'none';
-        if (pendingTaskIdx !== null) { startTask(pendingTaskIdx); pendingTaskIdx = null; }
+    async function fetchPrayers() {
+        const off = [
+            document.getElementById('off1').value, 
+            document.getElementById('off2').value, 
+            document.getElementById('off3').value, 
+            document.getElementById('off4').value, 
+            document.getElementById('off5').value
+        ];
+        // API Tune: Fajr, Sunrise, Dhuhr, Asr, Maghrib, Sunset, Isha, Imsak
+        const tune = `${off[0]},0,${off[1]},${off[2]},0,${off[3]},0,${off[4]}`;
+        const url = `https://api.aladhan.com/v1/timingsByCity?city=Makhachkala&country=Russia&method=3&tune=${tune}`;
+        
+        try {
+            const res = await fetch(url);
+            const d = await res.json();
+            const t = d.data.timings;
+            prayerTimes = { 'Фаджр': t.Fajr, 'Зухр': t.Dhuhr, 'Аср': t.Asr, 'Магриб': t.Maghrib, 'Иша': t.Isha };
+            renderPrayers();
+        } catch (e) { console.error("API Error"); }
     }
 
-    function addTask() {
-        const n = document.getElementById('tName').value, t = document.getElementById('tTime').value, d = document.getElementById('tDur').value, r = document.getElementById('tRepeat').value;
-        if(n && t && d) {
-            tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), repeat: r, lastDoneDate: "" });
-            tasks.sort((a,b) => a.start.localeCompare(b.start));
-            save(); renderTasks();
-            document.getElementById('tName').value = '';
-        }
-    }
-
-    function renderTasks() {
-        const list = document.getElementById('taskList'), today = new Date().toISOString().split('T')[0];
-        list.innerHTML = '';
-        tasks.forEach((t) => {
-            const isDoneToday = t.lastDoneDate === today;
-            list.innerHTML += `<li class="task-item ${isDoneToday ? 'done' : ''}"><div><b>${t.start}</b> ${t.name}</div><button onclick="deleteTask(${t.id})" style="border:none;background:none;color:#e74c3c;cursor:pointer;">✕</button></li>`;
+    function renderPrayers() {
+        const grid = document.getElementById('prayer-cards');
+        grid.innerHTML = '';
+        Object.entries(prayerTimes).forEach(([name, time]) => {
+            grid.innerHTML += `<div class="p-card"><span>${name}</span><b>${time}</b></div>`;
         });
+    }
+
+    function notify(title, msg) {
+        if (Notification.permission === "granted") {
+            const n = new Notification(title, { body: msg, requireInteraction: true });
+            n.onclick = () => { window.focus(); n.close(); };
+        }
+        if(alertsActive) new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
     }
 
     function tick() {
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('ru-RU', {hour12: false});
+        const timeStr = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
         const shortTime = timeStr.substring(0, 5);
+        
         document.getElementById('clock').innerText = timeStr;
+        document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'}).toUpperCase();
         
         if (now.getSeconds() === 0) {
-            Object.entries(prayerTimes).forEach(([name, time]) => { if (time === shortTime) showVisualAlert("ВРЕМЯ НАМАЗА", name, false); });
+            // Проверка Намаза
+            for (let name in prayerTimes) {
+                if (prayerTimes[name] === shortTime) notify("ВРЕМЯ НАМАЗА", `Наступило время молитвы: ${name}`);
+            }
+            // Проверка Задач
             tasks.forEach((t, i) => {
-                if (t.lastDoneDate !== now.toISOString().split('T')[0] && t.start === shortTime && !activeInterval) {
-                    let day = now.getDay();
-                    let shouldRun = (t.repeat === 'none') || (t.repeat === 'daily') || (t.repeat === 'weekdays' && day >= 1 && day <= 5);
-                    if (shouldRun) showVisualAlert("ПОРА ЗАЧАТЬ", t.name, true, i);
+                if (t.start === shortTime && t.lastDone !== now.toDateString() && !activeInterval) {
+                    notify("ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`);
+                    startTask(i);
                 }
             });
-            fetchPrayers(); // Обновляем сетку раз в минуту
         }
     }
 
     function startTask(idx) {
         const task = tasks[idx];
         let sec = task.dur * 60;
-        document.getElementById('status-bar').innerText = task.name.toUpperCase();
+        document.getElementById('status-bar').innerText = task.name;
         activeInterval = setInterval(() => {
             sec--;
             const m = Math.floor(sec/60).toString().padStart(2, '0'), s = (sec%60).toString().padStart(2, '0');
             document.getElementById('main-timer').innerText = `${m}:${s}`;
             if (sec <= 0) {
                 clearInterval(activeInterval); activeInterval = null;
-                if (task.repeat === 'none') tasks.splice(idx, 1);
-                else tasks[idx].lastDoneDate = new Date().toISOString().split('T')[0];
-                save(); renderTasks();
+                tasks[idx].lastDone = new Date().toDateString();
+                localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
+                renderTasks();
+                notify("ЗАДАЧА ЗАВЕРШЕНА", `Вы закончили: ${task.name}`);
                 document.getElementById('main-timer').innerText = "00:00";
-                document.getElementById('status-bar').innerText = "ГОТОВО";
             }
         }, 1000);
     }
 
-    function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
-    function save() { localStorage.setItem('pomo_v35_tasks', JSON.stringify(tasks)); }
+    function addTask() {
+        const n = document.getElementById('tName').value, t = document.getElementById('tTime').value, d = document.getElementById('tDur').value;
+        if(n && t && d) {
+            tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), lastDone: "" });
+            tasks.sort((a,b) => a.start.localeCompare(b.start));
+            localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
+            renderTasks();
+            document.getElementById('tName').value = '';
+        }
+    }
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+        tasks.forEach(t => {
+            list.innerHTML += `<li class="task-item"><b>${t.start}</b> — ${t.name} <button class="btn-del" onclick="deleteTask(${t.id})">✕</button></li>`;
+        });
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
+        renderTasks();
+    }
 
     fetchPrayers();
+    renderTasks();
     setInterval(tick, 1000);
 </script>
 </body>
