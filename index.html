@@ -3,51 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PomoDag 3.8 — Full Control</title>
+    <title>PomoDag 3.9 — Repetitive Tasks Fix</title>
     <style>
         :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; --text: #34495e; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); }
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.07); width: 100%; max-width: 420px; border: 1px solid #eee; position: relative; }
-        
-        .settings-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 22px; color: #bdc3c7; transition: 0.3s; z-index: 10; }
-        .settings-toggle:hover { color: var(--primary); }
-
-        #clock { font-size: 52px; font-weight: 800; text-align: center; color: var(--primary); letter-spacing: -1px; margin-bottom: 5px; }
+        .settings-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 22px; color: #bdc3c7; z-index: 10; }
+        #clock { font-size: 52px; font-weight: 800; text-align: center; color: var(--primary); letter-spacing: -1px; }
         #date { text-align: center; font-size: 12px; color: #95a5a6; text-transform: uppercase; margin-bottom: 20px; }
-        
-        /* Панель корректировки времени */
-        #offset-panel { background: #f8f9fa; border-radius: 12px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; border: 0 solid #eee; }
-        #offset-panel.open { max-height: 100px; padding: 15px; margin-bottom: 20px; border-width: 1px; }
-        #offset-panel div { text-align: center; }
-        #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; margin-top: 5px; }
-
-        .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 25px; }
-        .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        #offset-panel { background: #f8f9fa; border-radius: 12px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; }
+        #offset-panel.open { max-height: 100px; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
+        #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; }
+        .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
+        .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; }
         .p-card span { font-size: 9px; font-weight: bold; color: #95a5a6; text-transform: uppercase; display: block; }
-        .p-card b { font-size: 13px; color: #2c3e50; margin-top: 4px; display: block; }
-
+        .p-card b { font-size: 13px; color: #2c3e50; display: block; }
         .timer-box { text-align: center; background: #fafafa; padding: 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #eee; }
         #main-timer { font-size: 68px; font-weight: bold; color: var(--accent); line-height: 1; }
         #status-bar { font-size: 11px; font-weight: 700; color: #7f8c8d; margin-top: 10px; text-transform: uppercase; }
-
         .input-area { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input[type="text"], input[type="time"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
-        .btn-add:hover { background: #1a252f; }
-
-        .task-list { list-style: none; padding: 0; margin: 0; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
+        .task-list { list-style: none; padding: 0; }
         .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
+        .task-item.done { opacity: 0.5; background: #f9f9f9; text-decoration: line-through; }
         .btn-del { color: #e74c3c; border: none; background: none; cursor: pointer; font-weight: bold; }
-
-        #init-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        #init-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
-    
     <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ</button>
 
     <div id="clock">00:00:00</div>
@@ -69,11 +56,16 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="tName" placeholder="Задача (напр. Контент для Berbena)">
+        <input type="text" id="tName" placeholder="Название (напр. Контент Berbena)">
         <div style="display: flex; gap: 8px;">
             <input type="time" id="tTime" style="flex: 2;">
             <input type="number" id="tDur" placeholder="Мин" style="flex: 1;">
         </div>
+        <select id="tRepeat">
+            <option value="none">Один раз</option>
+            <option value="daily">Каждый день</option>
+            <option value="weekdays">Будни (Пн-Пт)</option>
+        </select>
         <button class="btn-add" onclick="addTask()">ДОБАВИТЬ В ПЛАН</button>
     </div>
 
@@ -82,33 +74,21 @@
 
 <script>
     let prayerTimes = {};
-    let tasks = JSON.parse(localStorage.getItem('pomo_v38_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('pomo_v39_tasks')) || [];
     let activeInterval = null;
     let alertsActive = false;
 
     function activateAlerts() {
         alertsActive = true;
         document.getElementById('init-btn').style.display = 'none';
-        if ("Notification" in window) {
-            Notification.requestPermission().then(p => {
-                if(p === "granted") new Notification("PomoDag", { body: "Уведомления и звук активированы" });
-            });
-        }
+        if ("Notification" in window) Notification.requestPermission();
         new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
     }
 
     async function fetchPrayers() {
-        const off = [
-            document.getElementById('off1').value, 
-            document.getElementById('off2').value, 
-            document.getElementById('off3').value, 
-            document.getElementById('off4').value, 
-            document.getElementById('off5').value
-        ];
-        // API Tune: Fajr, Sunrise, Dhuhr, Asr, Maghrib, Sunset, Isha, Imsak
+        const off = [document.getElementById('off1').value, document.getElementById('off2').value, document.getElementById('off3').value, document.getElementById('off4').value, document.getElementById('off5').value];
         const tune = `${off[0]},0,${off[1]},${off[2]},0,${off[3]},0,${off[4]}`;
         const url = `https://api.aladhan.com/v1/timingsByCity?city=Makhachkala&country=Russia&method=3&tune=${tune}`;
-        
         try {
             const res = await fetch(url);
             const d = await res.json();
@@ -138,20 +118,23 @@
         const now = new Date();
         const timeStr = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
         const shortTime = timeStr.substring(0, 5);
+        const day = now.getDay();
+        const todayStr = now.toDateString();
         
         document.getElementById('clock').innerText = timeStr;
         document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'}).toUpperCase();
         
         if (now.getSeconds() === 0) {
-            // Проверка Намаза
             for (let name in prayerTimes) {
                 if (prayerTimes[name] === shortTime) notify("ВРЕМЯ НАМАЗА", `Наступило время молитвы: ${name}`);
             }
-            // Проверка Задач
             tasks.forEach((t, i) => {
-                if (t.start === shortTime && t.lastDone !== now.toDateString() && !activeInterval) {
-                    notify("ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`);
-                    startTask(i);
+                if (t.start === shortTime && t.lastDone !== todayStr && !activeInterval) {
+                    let shouldRun = (t.repeat === 'none' || t.repeat === 'daily' || (t.repeat === 'weekdays' && day >= 1 && day <= 5));
+                    if (shouldRun) {
+                        notify("ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`);
+                        startTask(i);
+                    }
                 }
             });
         }
@@ -167,9 +150,10 @@
             document.getElementById('main-timer').innerText = `${m}:${s}`;
             if (sec <= 0) {
                 clearInterval(activeInterval); activeInterval = null;
-                tasks[idx].lastDone = new Date().toDateString();
-                localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
-                renderTasks();
+                const today = new Date().toDateString();
+                if (task.repeat === 'none') tasks.splice(idx, 1);
+                else tasks[idx].lastDone = today;
+                save(); renderTasks();
                 notify("ЗАДАЧА ЗАВЕРШЕНА", `Вы закончили: ${task.name}`);
                 document.getElementById('main-timer').innerText = "00:00";
             }
@@ -177,32 +161,29 @@
     }
 
     function addTask() {
-        const n = document.getElementById('tName').value, t = document.getElementById('tTime').value, d = document.getElementById('tDur').value;
+        const n = document.getElementById('tName').value, t = document.getElementById('tTime').value, d = document.getElementById('tDur').value, r = document.getElementById('tRepeat').value;
         if(n && t && d) {
-            tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), lastDone: "" });
+            tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), repeat: r, lastDone: "" });
             tasks.sort((a,b) => a.start.localeCompare(b.start));
-            localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
-            renderTasks();
+            save(); renderTasks();
             document.getElementById('tName').value = '';
         }
     }
 
     function renderTasks() {
-        const list = document.getElementById('taskList');
+        const list = document.getElementById('taskList'), today = new Date().toDateString();
         list.innerHTML = '';
         tasks.forEach(t => {
-            list.innerHTML += `<li class="task-item"><b>${t.start}</b> — ${t.name} <button class="btn-del" onclick="deleteTask(${t.id})">✕</button></li>`;
+            const done = t.lastDone === today;
+            const type = t.repeat === 'weekdays' ? '📅 Будни' : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
+            list.innerHTML += `<li class="task-item ${done ? 'done' : ''}"><div><small style="display:block;color:#95a5a6">${type}</small><b>${t.start}</b> — ${t.name}</div><button class="btn-del" onclick="deleteTask(${t.id})">✕</button></li>`;
         });
     }
 
-    function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        localStorage.setItem('pomo_v38_tasks', JSON.stringify(tasks));
-        renderTasks();
-    }
+    function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
+    function save() { localStorage.setItem('pomo_v39_tasks', JSON.stringify(tasks)); }
 
-    fetchPrayers();
-    renderTasks();
+    fetchPrayers(); renderTasks();
     setInterval(tick, 1000);
 </script>
 </body>
