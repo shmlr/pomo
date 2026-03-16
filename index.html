@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PomoDag 3.9 — Repetitive Tasks Fix</title>
+    <title>PomoDag 4.0</title>
     <style>
         :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; --text: #34495e; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); }
@@ -14,28 +14,36 @@
         #offset-panel { background: #f8f9fa; border-radius: 12px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; }
         #offset-panel.open { max-height: 100px; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
         #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; }
-        .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
-        .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; }
-        .p-card span { font-size: 9px; font-weight: bold; color: #95a5a6; text-transform: uppercase; display: block; }
-        .p-card b { font-size: 13px; color: #2c3e50; display: block; }
+        .prayer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
+        .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; transition: 0.3s; }
+        .p-card.next { border-color: #27ae60; background: #f0fff4; }
+        .p-card.done { opacity: 0.4; }
+        .p-card span { font-size: 8px; font-weight: bold; color: #95a5a6; text-transform: uppercase; display: block; }
+        .p-card b { font-size: 12px; color: #2c3e50; display: block; }
         .timer-box { text-align: center; background: #fafafa; padding: 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #eee; }
         #main-timer { font-size: 68px; font-weight: bold; color: var(--accent); line-height: 1; }
         #status-bar { font-size: 11px; font-weight: 700; color: #7f8c8d; margin-top: 10px; text-transform: uppercase; }
         .input-area { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        input[type=text], input[type=time], input[type=number], select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         .btn-add { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
         .task-list { list-style: none; padding: 0; }
         .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
         .task-item.done { opacity: 0.5; background: #f9f9f9; text-decoration: line-through; }
-        .btn-del { color: #e74c3c; border: none; background: none; cursor: pointer; font-weight: bold; }
-        #init-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        .btn-del { color: #e74c3c; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #init-btn { background: #e74c3c; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; font-size: 15px; }
+        #notif-status { text-align: center; font-size: 12px; margin-bottom: 10px; padding: 8px; border-radius: 8px; display: none; }
+        #notif-status.ok { background: #d4edda; color: #155724; display: block; }
+        #notif-status.err { background: #f8d7da; color: #721c24; display: block; }
+        .next-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 10px 14px; text-align: center; font-size: 13px; color: #856404; margin-bottom: 16px; display: none; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
-    <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ</button>
+
+    <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ НА ТЕЛЕФОНЕ</button>
+    <div id="notif-status"></div>
+    <div class="next-banner" id="next-banner"></div>
 
     <div id="clock">00:00:00</div>
     <div id="date">ЗАГРУЗКА...</div>
@@ -56,10 +64,10 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="tName" placeholder="Название (напр. Контент Berbena)">
-        <div style="display: flex; gap: 8px;">
-            <input type="time" id="tTime" style="flex: 2;">
-            <input type="number" id="tDur" placeholder="Мин" style="flex: 1;">
+        <input type="text" id="tName" placeholder="Название задачи">
+        <div style="display:flex;gap:8px">
+            <input type="time" id="tTime" style="flex:2">
+            <input type="number" id="tDur" placeholder="Мин" style="flex:1">
         </div>
         <select id="tRepeat">
             <option value="none">Один раз</option>
@@ -74,116 +82,278 @@
 
 <script>
     let prayerTimes = {};
-    let tasks = JSON.parse(localStorage.getItem('pomo_v39_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('pomo_v40_tasks')) || [];
     let activeInterval = null;
     let alertsActive = false;
+    let swRegistration = null;
 
-    function activateAlerts() {
-        alertsActive = true;
-        document.getElementById('init-btn').style.display = 'none';
-        if ("Notification" in window) Notification.requestPermission();
-        new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
+    // ── FIX 3: звук через Web Audio API без CORS ──
+    function playBeep(freq = 880, dur = 0.8) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0.3, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+            o.start(); o.stop(ctx.currentTime + dur);
+        } catch(e) {}
     }
 
+    // ── УВЕДОМЛЕНИЯ НА ТЕЛЕФОНЕ (Service Worker + Push) ──
+    async function activateAlerts() {
+        alertsActive = true;
+        document.getElementById('init-btn').style.display = 'none';
+
+        if (!("Notification" in window)) {
+            showNotifStatus('err', '❌ Браузер не поддерживает уведомления');
+            return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+            showNotifStatus('ok', '✅ Уведомления включены! Получишь сигнал о каждом намазе и задаче.');
+            playBeep(660, 0.3);
+            // Регистрируем Service Worker для фоновых уведомлений
+            if ('serviceWorker' in navigator) {
+                try {
+                    // Создаём SW на лету через Blob
+                    const swCode = `
+                        self.addEventListener('message', (e) => {
+                            if (e.data && e.data.type === 'NOTIFY') {
+                                self.registration.showNotification(e.data.title, {
+                                    body: e.data.body,
+                                    icon: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
+                                    badge: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
+                                    requireInteraction: true,
+                                    vibrate: [200, 100, 200],
+                                    tag: e.data.tag || 'pomo',
+                                    renotify: true
+                                });
+                            }
+                        });
+                        self.addEventListener('notificationclick', (e) => {
+                            e.notification.close();
+                            e.waitUntil(clients.openWindow('/'));
+                        });
+                    `;
+                    const blob = new Blob([swCode], {type: 'application/javascript'});
+                    const swUrl = URL.createObjectURL(blob);
+                    swRegistration = await navigator.serviceWorker.register(swUrl, {scope: '/'});
+                    console.log('SW registered');
+                } catch(e) {
+                    console.log('SW fallback to basic notifications');
+                }
+            }
+        } else if (perm === 'denied') {
+            showNotifStatus('err', '❌ Уведомления заблокированы. Разреши в настройках браузера.');
+            document.getElementById('init-btn').style.display = 'block';
+        } else {
+            showNotifStatus('err', '⚠️ Разрешение не дано');
+            document.getElementById('init-btn').style.display = 'block';
+        }
+    }
+
+    function showNotifStatus(type, msg) {
+        const el = document.getElementById('notif-status');
+        el.className = type;
+        el.textContent = msg;
+    }
+
+    function notify(title, body, tag = 'pomo') {
+        playBeep(title.includes('НАМАЗ') ? 528 : 880);
+        if (Notification.permission !== 'granted') return;
+
+        // Service Worker уведомление (работает в фоне на телефоне)
+        if (swRegistration && swRegistration.active) {
+            swRegistration.active.postMessage({ type: 'NOTIFY', title, body, tag });
+        } else {
+            // Fallback: обычное уведомление
+            const n = new Notification(title, {
+                body,
+                requireInteraction: true,
+                tag,
+                icon: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
+                vibrate: [200, 100, 200]
+            });
+            n.onclick = () => { window.focus(); n.close(); };
+        }
+    }
+
+    // ── FIX 6: tune = 9 значений (Aladhan API) ──
     async function fetchPrayers() {
-        const off = [document.getElementById('off1').value, document.getElementById('off2').value, document.getElementById('off3').value, document.getElementById('off4').value, document.getElementById('off5').value];
-        const tune = `${off[0]},0,${off[1]},${off[2]},0,${off[3]},0,${off[4]}`;
+        const o = ['off1','off2','off3','off4','off5'].map(id => document.getElementById(id).value || 0);
+        const tune = `0,${o[0]},0,${o[1]},${o[2]},${o[3]},0,${o[4]},0`;
         const url = `https://api.aladhan.com/v1/timingsByCity?city=Makhachkala&country=Russia&method=3&tune=${tune}`;
         try {
             const res = await fetch(url);
             const d = await res.json();
             const t = d.data.timings;
-            prayerTimes = { 'Фаджр': t.Fajr, 'Зухр': t.Dhuhr, 'Аср': t.Asr, 'Магриб': t.Maghrib, 'Иша': t.Isha };
+            // ДОБАВЛЕН Восход (Sunrise) ──
+            prayerTimes = {
+                'Фаджр':  t.Fajr,
+                'Восход': t.Sunrise,
+                'Зухр':   t.Dhuhr,
+                'Аср':    t.Asr,
+                'Магриб': t.Maghrib,
+                'Иша':    t.Isha
+            };
             renderPrayers();
-        } catch (e) { console.error("API Error"); }
+        } catch(e) {
+            // Fallback данные
+            prayerTimes = {'Фаджр':'04:24','Восход':'06:23','Зухр':'12:02','Аср':'15:21','Магриб':'17:59','Иша':'19:28'};
+            renderPrayers();
+        }
     }
 
     function renderPrayers() {
+        // FIX 2: shortTime из getHours/getMinutes с padStart
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        let nextName = null;
+
         const grid = document.getElementById('prayer-cards');
         grid.innerHTML = '';
         Object.entries(prayerTimes).forEach(([name, time]) => {
-            grid.innerHTML += `<div class="p-card"><span>${name}</span><b>${time}</b></div>`;
+            const [h, m] = time.split(':').map(Number);
+            const pMin = h * 60 + m;
+            const isDone = pMin <= nowMin;
+            if (!isDone && !nextName) nextName = name;
+            const cls = isDone ? 'p-card done' : (name === nextName ? 'p-card next' : 'p-card');
+            const div = document.createElement('div');
+            div.className = cls;
+            div.innerHTML = `<span>${name}</span><b>${time}</b>`;
+            grid.appendChild(div);
         });
-    }
 
-    function notify(title, msg) {
-        if (Notification.permission === "granted") {
-            const n = new Notification(title, { body: msg, requireInteraction: true });
-            n.onclick = () => { window.focus(); n.close(); };
+        if (nextName) {
+            const banner = document.getElementById('next-banner');
+            banner.style.display = 'block';
+            banner.textContent = `⏰ Следующий: ${nextName} в ${prayerTimes[nextName]}`;
         }
-        if(alertsActive) new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
     }
 
     function tick() {
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-        const shortTime = timeStr.substring(0, 5);
+        // FIX 2: надёжный shortTime без локали
+        const h = now.getHours().toString().padStart(2, '0');
+        const m = now.getMinutes().toString().padStart(2, '0');
+        const s = now.getSeconds().toString().padStart(2, '0');
+        const shortTime = `${h}:${m}`;
         const day = now.getDay();
         const todayStr = now.toDateString();
-        
-        document.getElementById('clock').innerText = timeStr;
-        document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'}).toUpperCase();
-        
+
+        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+        document.getElementById('date').innerText = now.toLocaleDateString('ru-RU',
+            {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+
         if (now.getSeconds() === 0) {
+            renderPrayers();
+
+            // Уведомление намазов
             for (let name in prayerTimes) {
-                if (prayerTimes[name] === shortTime) notify("ВРЕМЯ НАМАЗА", `Наступило время молитвы: ${name}`);
+                if (prayerTimes[name] === shortTime) {
+                    notify("🕌 ВРЕМЯ НАМАЗА", `Наступило время: ${name}`, 'prayer');
+                }
             }
+
+            // FIX 4: флаг против двойного запуска
+            let taskStartedThisMinute = false;
             tasks.forEach((t, i) => {
-                if (t.start === shortTime && t.lastDone !== todayStr && !activeInterval) {
-                    let shouldRun = (t.repeat === 'none' || t.repeat === 'daily' || (t.repeat === 'weekdays' && day >= 1 && day <= 5));
-                    if (shouldRun) {
-                        notify("ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`);
-                        startTask(i);
-                    }
+                const shouldRun = t.repeat === 'none' || t.repeat === 'daily' ||
+                    (t.repeat === 'weekdays' && day >= 1 && day <= 5);
+                if (t.start === shortTime && t.lastDone !== todayStr
+                    && !activeInterval && !taskStartedThisMinute && shouldRun) {
+                    taskStartedThisMinute = true;
+                    notify("⏱️ ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`, 'task');
+                    startTask(i);
                 }
             });
         }
     }
 
+    // FIX 1: startTask использует id вместо idx
     function startTask(idx) {
         const task = tasks[idx];
+        if (!task) return;
+        const taskId = task.id;
         let sec = task.dur * 60;
+
         document.getElementById('status-bar').innerText = task.name;
         activeInterval = setInterval(() => {
             sec--;
-            const m = Math.floor(sec/60).toString().padStart(2, '0'), s = (sec%60).toString().padStart(2, '0');
-            document.getElementById('main-timer').innerText = `${m}:${s}`;
+            const mm = Math.floor(sec/60).toString().padStart(2,'0');
+            const ss = (sec%60).toString().padStart(2,'0');
+            document.getElementById('main-timer').innerText = `${mm}:${ss}`;
+
             if (sec <= 0) {
                 clearInterval(activeInterval); activeInterval = null;
-                const today = new Date().toDateString();
-                if (task.repeat === 'none') tasks.splice(idx, 1);
-                else tasks[idx].lastDone = today;
+                // FIX 1: ищем по id, не по сдвигающемуся индексу
+                const real = tasks.find(t => t.id === taskId);
+                if (real) {
+                    if (real.repeat === 'none') tasks = tasks.filter(t => t.id !== taskId);
+                    else real.lastDone = new Date().toDateString();
+                }
                 save(); renderTasks();
-                notify("ЗАДАЧА ЗАВЕРШЕНА", `Вы закончили: ${task.name}`);
-                document.getElementById('main-timer').innerText = "00:00";
+                notify("✅ ЗАДАЧА ЗАВЕРШЕНА", `Вы закончили: ${task.name}`, 'done');
+                playBeep(528, 1.2);
+                document.getElementById('main-timer').innerText = '00:00';
+                document.getElementById('status-bar').innerText = 'ОЖИДАНИЕ';
             }
         }, 1000);
     }
 
     function addTask() {
-        const n = document.getElementById('tName').value, t = document.getElementById('tTime').value, d = document.getElementById('tDur').value, r = document.getElementById('tRepeat').value;
-        if(n && t && d) {
-            tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), repeat: r, lastDone: "" });
-            tasks.sort((a,b) => a.start.localeCompare(b.start));
-            save(); renderTasks();
-            document.getElementById('tName').value = '';
-        }
+        const n = document.getElementById('tName').value.trim();
+        const t = document.getElementById('tTime').value;
+        const d = document.getElementById('tDur').value;
+        const r = document.getElementById('tRepeat').value;
+        if (!n || !t || !d) return;
+        tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), repeat: r, lastDone: '' });
+        tasks.sort((a, b) => a.start.localeCompare(b.start));
+        save(); renderTasks();
+        document.getElementById('tName').value = '';
+        document.getElementById('tDur').value = '';
     }
 
+    // FIX 5: XSS-безопасный рендер через createElement
     function renderTasks() {
-        const list = document.getElementById('taskList'), today = new Date().toDateString();
+        const list = document.getElementById('taskList');
+        const today = new Date().toDateString();
         list.innerHTML = '';
         tasks.forEach(t => {
             const done = t.lastDone === today;
-            const type = t.repeat === 'weekdays' ? '📅 Будни' : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
-            list.innerHTML += `<li class="task-item ${done ? 'done' : ''}"><div><small style="display:block;color:#95a5a6">${type}</small><b>${t.start}</b> — ${t.name}</div><button class="btn-del" onclick="deleteTask(${t.id})">✕</button></li>`;
+            const typeLabel = t.repeat === 'weekdays' ? '📅 Будни'
+                : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
+
+            const li = document.createElement('li');
+            li.className = 'task-item' + (done ? ' done' : '');
+
+            const info = document.createElement('div');
+            const small = document.createElement('small');
+            small.style = 'display:block;color:#95a5a6';
+            small.textContent = typeLabel;
+            const main = document.createElement('span');
+            main.textContent = `${t.start} — ${t.name}`;
+            info.appendChild(small);
+            info.appendChild(main);
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-del';
+            btn.textContent = '✕';
+            btn.onclick = () => deleteTask(t.id);
+
+            li.appendChild(info);
+            li.appendChild(btn);
+            list.appendChild(li);
         });
     }
 
     function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
-    function save() { localStorage.setItem('pomo_v39_tasks', JSON.stringify(tasks)); }
+    function save() { localStorage.setItem('pomo_v40_tasks', JSON.stringify(tasks)); }
 
-    fetchPrayers(); renderTasks();
+    fetchPrayers();
+    renderTasks();
     setInterval(tick, 1000);
 </script>
 </body>
