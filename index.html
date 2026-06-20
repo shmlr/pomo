@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PomoDag 4.0</title>
+    <title>PomoDag</title>
     <style>
         :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; --text: #34495e; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--text); margin: 0; }
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.07); width: 100%; max-width: 420px; border: 1px solid #eee; position: relative; }
         .settings-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 22px; color: #bdc3c7; z-index: 10; }
         #clock { font-size: 52px; font-weight: 800; text-align: center; color: var(--primary); letter-spacing: -1px; }
         #date { text-align: center; font-size: 12px; color: #95a5a6; text-transform: uppercase; margin-bottom: 20px; }
         #offset-panel { background: #f8f9fa; border-radius: 12px; display: flex; justify-content: space-around; font-size: 10px; overflow: hidden; max-height: 0; transition: 0.4s; }
         #offset-panel.open { max-height: 100px; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-        #offset-panel input { width: 35px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; }
+        #offset-panel input { width: 38px; border: 1px solid #ddd; text-align: center; border-radius: 5px; padding: 4px; }
         .prayer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
         .p-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 1px solid #f0f0f0; transition: 0.3s; }
         .p-card.next { border-color: #27ae60; background: #f0fff4; }
@@ -23,25 +24,29 @@
         .timer-box { text-align: center; background: #fafafa; padding: 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #eee; }
         #main-timer { font-size: 68px; font-weight: bold; color: var(--accent); line-height: 1; }
         #status-bar { font-size: 11px; font-weight: 700; color: #7f8c8d; margin-top: 10px; text-transform: uppercase; }
+        #stop-btn { display: none; margin-top: 12px; background: #e74c3c; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .input-area { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input[type=text], input[type=time], input[type=number], select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        input[type=text], input[type=time], input[type=number], select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         .btn-add { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
         .task-list { list-style: none; padding: 0; }
         .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
-        .task-item.done { opacity: 0.5; background: #f9f9f9; text-decoration: line-through; }
+        .task-item.done { opacity: 0.5; background: #f9f9f9; }
+        .task-item.done span { text-decoration: line-through; }
         .btn-del { color: #e74c3c; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 16px; }
-        #init-btn { background: #e74c3c; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 15px; cursor: pointer; font-size: 15px; }
+        #init-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-bottom: 6px; cursor: pointer; font-size: 15px; }
+        .hint { text-align: center; font-size: 11px; color: #95a5a6; margin-bottom: 14px; }
         #notif-status { text-align: center; font-size: 12px; margin-bottom: 10px; padding: 8px; border-radius: 8px; display: none; }
         #notif-status.ok { background: #d4edda; color: #155724; display: block; }
-        #notif-status.err { background: #f8d7da; color: #721c24; display: block; }
-        .next-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 10px 14px; text-align: center; font-size: 13px; color: #856404; margin-bottom: 16px; display: none; }
+        #notif-status.err { background: #fff3cd; color: #856404; display: block; }
+        .next-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 10px 14px; text-align: center; font-size: 13px; color: #856404; margin-bottom: 16px; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
 
-    <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ НА ТЕЛЕФОНЕ</button>
+    <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ ЗВУК И УВЕДОМЛЕНИЯ</button>
+    <div class="hint">Сигнал работает, пока эта вкладка открыта на экране</div>
     <div id="notif-status"></div>
     <div class="next-banner" id="next-banner"></div>
 
@@ -61,13 +66,14 @@
     <div class="timer-box">
         <div id="main-timer">00:00</div>
         <div id="status-bar">ОЖИДАНИЕ</div>
+        <button id="stop-btn" onclick="stopTask()">ОСТАНОВИТЬ</button>
     </div>
 
     <div class="input-area">
         <input type="text" id="tName" placeholder="Название задачи">
         <div style="display:flex;gap:8px">
             <input type="time" id="tTime" style="flex:2">
-            <input type="number" id="tDur" placeholder="Мин" style="flex:1">
+            <input type="number" id="tDur" placeholder="Мин" min="1" style="flex:1">
         </div>
         <select id="tRepeat">
             <option value="none">Один раз</option>
@@ -81,279 +87,257 @@
 </div>
 
 <script>
-    let prayerTimes = {};
-    let tasks = JSON.parse(localStorage.getItem('pomo_v40_tasks')) || [];
-    let activeInterval = null;
-    let alertsActive = false;
-    let swRegistration = null;
+    // ── Хранилище: не падает, если localStorage недоступен ──
+    const store = {
+        get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; } },
+        set(k, v)   { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+    };
 
-    // ── FIX 3: звук через Web Audio API без CORS ──
-    function playBeep(freq = 880, dur = 0.8) {
+    let prayerTimes   = {};
+    let lastFetchDate = '';
+    let tasks         = store.get('pomo_tasks', []);
+    let activeTimer   = null;   // { interval, taskId, name }
+    let lastMinute    = '';
+    let notifiedPrayers = {};   // { 'дата': { 'Зухр': true, ... } }
+    let audioCtx      = null;
+    let notifyEnabled = false;
+
+    // ── Звук: ОДИН общий AudioContext (без утечки) ──
+    function ensureAudio() {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function beep(freq = 880, dur = 0.8) {
+        if (!audioCtx) return;
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator(), g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
+            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
             o.frequency.value = freq;
-            g.gain.setValueAtTime(0.3, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-            o.start(); o.stop(ctx.currentTime + dur);
+            g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+            o.start(); o.stop(audioCtx.currentTime + dur);
         } catch(e) {}
     }
 
-    // ── УВЕДОМЛЕНИЯ НА ТЕЛЕФОНЕ (Service Worker + Push) ──
+    // ── Включение сигналов (требует нажатия — иначе звук заблокирован браузером) ──
     async function activateAlerts() {
-        alertsActive = true;
+        ensureAudio();
+        beep(660, 0.25);
         document.getElementById('init-btn').style.display = 'none';
 
-        if (!("Notification" in window)) {
-            showNotifStatus('err', '❌ Браузер не поддерживает уведомления');
+        if (!('Notification' in window)) {
+            setStatus('err', '🔊 Звук включён. Системные уведомления этот браузер не поддерживает.');
             return;
         }
-
-        const perm = await Notification.requestPermission();
-        if (perm === 'granted') {
-            showNotifStatus('ok', '✅ Уведомления включены! Получишь сигнал о каждом намазе и задаче.');
-            playBeep(660, 0.3);
-            // Регистрируем Service Worker для фоновых уведомлений
-            if ('serviceWorker' in navigator) {
-                try {
-                    // Создаём SW на лету через Blob
-                    const swCode = `
-                        self.addEventListener('message', (e) => {
-                            if (e.data && e.data.type === 'NOTIFY') {
-                                self.registration.showNotification(e.data.title, {
-                                    body: e.data.body,
-                                    icon: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
-                                    badge: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
-                                    requireInteraction: true,
-                                    vibrate: [200, 100, 200],
-                                    tag: e.data.tag || 'pomo',
-                                    renotify: true
-                                });
-                            }
-                        });
-                        self.addEventListener('notificationclick', (e) => {
-                            e.notification.close();
-                            e.waitUntil(clients.openWindow('/'));
-                        });
-                    `;
-                    const blob = new Blob([swCode], {type: 'application/javascript'});
-                    const swUrl = URL.createObjectURL(blob);
-                    swRegistration = await navigator.serviceWorker.register(swUrl, {scope: '/'});
-                    console.log('SW registered');
-                } catch(e) {
-                    console.log('SW fallback to basic notifications');
-                }
+        try {
+            const perm = await Notification.requestPermission();
+            if (perm === 'granted') {
+                notifyEnabled = true;
+                setStatus('ok', '✅ Звук и уведомления включены (пока вкладка открыта).');
+            } else {
+                setStatus('err', '🔊 Звук включён. Уведомления не разрешены — можно включить их в настройках браузера.');
             }
-        } else if (perm === 'denied') {
-            showNotifStatus('err', '❌ Уведомления заблокированы. Разреши в настройках браузера.');
-            document.getElementById('init-btn').style.display = 'block';
-        } else {
-            showNotifStatus('err', '⚠️ Разрешение не дано');
-            document.getElementById('init-btn').style.display = 'block';
+        } catch(e) {
+            setStatus('err', '🔊 Звук включён.');
         }
     }
 
-    function showNotifStatus(type, msg) {
+    function setStatus(type, msg) {
         const el = document.getElementById('notif-status');
-        el.className = type;
-        el.textContent = msg;
+        el.className = type; el.textContent = msg;
     }
 
-    function notify(title, body, tag = 'pomo') {
-        playBeep(title.includes('НАМАЗ') ? 528 : 880);
-        if (Notification.permission !== 'granted') return;
-
-        // Service Worker уведомление (работает в фоне на телефоне)
-        if (swRegistration && swRegistration.active) {
-            swRegistration.active.postMessage({ type: 'NOTIFY', title, body, tag });
-        } else {
-            // Fallback: обычное уведомление
-            const n = new Notification(title, {
-                body,
-                requireInteraction: true,
-                tag,
-                icon: 'https://cdn.jsdelivr.net/npm/twemoji@14/assets/72x72/1f552.png',
-                vibrate: [200, 100, 200]
-            });
-            n.onclick = () => { window.focus(); n.close(); };
+    function notify(title, body, isPrayer) {
+        beep(isPrayer ? 528 : 880, isPrayer ? 1.0 : 0.6);
+        if (notifyEnabled && 'Notification' in window && Notification.permission === 'granted') {
+            // На некоторых телефонах конструктор недоступен — оборачиваем, чтобы не падало
+            try {
+                const n = new Notification(title, { body, tag: title });
+                n.onclick = () => { window.focus(); n.close(); };
+            } catch(e) {}
         }
     }
 
-    // ── FIX 6: tune = 9 значений (Aladhan API) ──
+    // ── Времена намазов (Aladhan API, Махачкала) ──
     async function fetchPrayers() {
-        const o = ['off1','off2','off3','off4','off5'].map(id => document.getElementById(id).value || 0);
-        const tune = `0,${o[0]},0,${o[1]},${o[2]},${o[3]},0,${o[4]},0`;
+        const o = ['off1','off2','off3','off4','off5'].map(id => parseInt(document.getElementById(id).value) || 0);
+        const tune = `0,${o[0]},0,${o[1]},${o[2]},${o[3]},0,${o[4]},0`; // 9 значений Aladhan
         const url = `https://api.aladhan.com/v1/timingsByCity?city=Makhachkala&country=Russia&method=3&tune=${tune}`;
         try {
             const res = await fetch(url);
             const d = await res.json();
             const t = d.data.timings;
-            // ДОБАВЛЕН Восход (Sunrise) ──
-            prayerTimes = {
-                'Фаджр':  t.Fajr,
-                'Восход': t.Sunrise,
-                'Зухр':   t.Dhuhr,
-                'Аср':    t.Asr,
-                'Магриб': t.Maghrib,
-                'Иша':    t.Isha
-            };
-            renderPrayers();
+            prayerTimes = { 'Фаджр': t.Fajr, 'Восход': t.Sunrise, 'Зухр': t.Dhuhr, 'Аср': t.Asr, 'Магриб': t.Maghrib, 'Иша': t.Isha };
         } catch(e) {
-            // Fallback данные
-            prayerTimes = {'Фаджр':'04:24','Восход':'06:23','Зухр':'12:02','Аср':'15:21','Магриб':'17:59','Иша':'19:28'};
-            renderPrayers();
+            prayerTimes = { 'Фаджр':'04:24', 'Восход':'06:23', 'Зухр':'12:02', 'Аср':'15:21', 'Магриб':'17:59', 'Иша':'19:28' };
         }
+        for (const k in prayerTimes) prayerTimes[k] = prayerTimes[k].slice(0, 5); // "04:24 (+03)" -> "04:24"
+        lastFetchDate = new Date().toDateString();
+        renderPrayers();
     }
 
     function renderPrayers() {
-        // FIX 2: shortTime из getHours/getMinutes с padStart
         const now = new Date();
         const nowMin = now.getHours() * 60 + now.getMinutes();
-        let nextName = null;
-
         const grid = document.getElementById('prayer-cards');
         grid.innerHTML = '';
+        let nextName = null;
+
         Object.entries(prayerTimes).forEach(([name, time]) => {
             const [h, m] = time.split(':').map(Number);
-            const pMin = h * 60 + m;
-            const isDone = pMin <= nowMin;
-            if (!isDone && !nextName) nextName = name;
-            const cls = isDone ? 'p-card done' : (name === nextName ? 'p-card next' : 'p-card');
+            const done = (h * 60 + m) <= nowMin;
+            if (!done && !nextName) nextName = name;
             const div = document.createElement('div');
-            div.className = cls;
-            div.innerHTML = `<span>${name}</span><b>${time}</b>`;
+            div.className = 'p-card' + (done ? ' done' : (name === nextName ? ' next' : ''));
+            const s = document.createElement('span'); s.textContent = name;
+            const b = document.createElement('b');     b.textContent = time;
+            div.append(s, b);
             grid.appendChild(div);
         });
 
-        if (nextName) {
-            const banner = document.getElementById('next-banner');
-            banner.style.display = 'block';
-            banner.textContent = `⏰ Следующий: ${nextName} в ${prayerTimes[nextName]}`;
-        }
+        const banner = document.getElementById('next-banner');
+        if (nextName) banner.textContent = `⏰ Следующий: ${nextName} в ${prayerTimes[nextName]}`;
+        else banner.textContent = `✅ Намазы на сегодня прошли. Завтра Фаджр в ${prayerTimes['Фаджр'] || '—'}`;
     }
 
+    // ── Часы + проверки раз в минуту (устойчиво к пропущенной секунде :00) ──
     function tick() {
         const now = new Date();
-        // FIX 2: надёжный shortTime без локали
-        const h = now.getHours().toString().padStart(2, '0');
-        const m = now.getMinutes().toString().padStart(2, '0');
-        const s = now.getSeconds().toString().padStart(2, '0');
-        const shortTime = `${h}:${m}`;
-        const day = now.getDay();
-        const todayStr = now.toDateString();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+        document.getElementById('date').textContent =
+            now.toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' }).toUpperCase();
 
-        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
-        document.getElementById('date').innerText = now.toLocaleDateString('ru-RU',
-            {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+        const cur = `${h}:${m}`;
+        if (cur !== lastMinute) { lastMinute = cur; onNewMinute(now, cur); }
+    }
 
-        if (now.getSeconds() === 0) {
-            renderPrayers();
+    function onNewMinute(now, cur) {
+        const today = now.toDateString();
+        if (today !== lastFetchDate) fetchPrayers();   // обновляем времена в новые сутки
+        renderPrayers();
 
-            // Уведомление намазов
-            for (let name in prayerTimes) {
-                if (prayerTimes[name] === shortTime) {
-                    notify("🕌 ВРЕМЯ НАМАЗА", `Наступило время: ${name}`, 'prayer');
-                }
+        // Намазы (Восход — не намаз, без сигнала)
+        if (!notifiedPrayers[today]) notifiedPrayers[today] = {};
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        for (const name in prayerTimes) {
+            if (name === 'Восход') continue;
+            const [ph, pm] = prayerTimes[name].split(':').map(Number);
+            const pMin = ph * 60 + pm;
+            if (nowMin >= pMin && nowMin < pMin + 2 && !notifiedPrayers[today][name]) {
+                notifiedPrayers[today][name] = true;
+                notify('🕌 ВРЕМЯ НАМАЗА', `Наступило время: ${name}`, true);
             }
+        }
 
-            // FIX 4: флаг против двойного запуска
-            let taskStartedThisMinute = false;
-            tasks.forEach((t, i) => {
-                const shouldRun = t.repeat === 'none' || t.repeat === 'daily' ||
-                    (t.repeat === 'weekdays' && day >= 1 && day <= 5);
-                if (t.start === shortTime && t.lastDone !== todayStr
-                    && !activeInterval && !taskStartedThisMinute && shouldRun) {
-                    taskStartedThisMinute = true;
-                    notify("⏱️ ПОРА ЗА ЗАДАЧУ", `Начинаем: ${t.name}`, 'task');
-                    startTask(i);
-                }
-            });
+        // Задачи (одна за раз)
+        const day = now.getDay();
+        for (const t of tasks) {
+            const shouldRun = t.repeat === 'none' || t.repeat === 'daily' ||
+                              (t.repeat === 'weekdays' && day >= 1 && day <= 5);
+            if (t.start === cur && t.lastDone !== today && !activeTimer && shouldRun) {
+                notify('⏱️ ПОРА ЗА ЗАДАЧУ', `Начинаем: ${t.name}`, false);
+                startTask(t.id);
+                break;
+            }
         }
     }
 
-    // FIX 1: startTask использует id вместо idx
-    function startTask(idx) {
-        const task = tasks[idx];
-        if (!task) return;
-        const taskId = task.id;
+    // ── Таймер задачи (поиск по id, не по индексу) ──
+    function startTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || activeTimer) return;
         let sec = task.dur * 60;
 
-        document.getElementById('status-bar').innerText = task.name;
-        activeInterval = setInterval(() => {
-            sec--;
-            const mm = Math.floor(sec/60).toString().padStart(2,'0');
-            const ss = (sec%60).toString().padStart(2,'0');
-            document.getElementById('main-timer').innerText = `${mm}:${ss}`;
+        document.getElementById('status-bar').textContent = task.name;
+        document.getElementById('stop-btn').style.display = 'inline-block';
 
-            if (sec <= 0) {
-                clearInterval(activeInterval); activeInterval = null;
-                // FIX 1: ищем по id, не по сдвигающемуся индексу
-                const real = tasks.find(t => t.id === taskId);
-                if (real) {
-                    if (real.repeat === 'none') tasks = tasks.filter(t => t.id !== taskId);
-                    else real.lastDone = new Date().toDateString();
-                }
-                save(); renderTasks();
-                notify("✅ ЗАДАЧА ЗАВЕРШЕНА", `Вы закончили: ${task.name}`, 'done');
-                playBeep(528, 1.2);
-                document.getElementById('main-timer').innerText = '00:00';
-                document.getElementById('status-bar').innerText = 'ОЖИДАНИЕ';
-            }
+        const interval = setInterval(() => {
+            sec--;
+            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+            const ss = String(sec % 60).padStart(2, '0');
+            document.getElementById('main-timer').textContent = `${mm}:${ss}`;
+            if (sec <= 0) finishTask(true);
         }, 1000);
+
+        activeTimer = { interval, taskId, name: task.name };
     }
 
+    function finishTask(completed) {
+        if (!activeTimer) return;
+        clearInterval(activeTimer.interval);
+        const { taskId, name } = activeTimer;
+        activeTimer = null;
+
+        document.getElementById('stop-btn').style.display = 'none';
+        document.getElementById('main-timer').textContent = '00:00';
+        document.getElementById('status-bar').textContent = 'ОЖИДАНИЕ';
+
+        if (completed) {
+            const t = tasks.find(x => x.id === taskId);
+            if (t) {
+                if (t.repeat === 'none') tasks = tasks.filter(x => x.id !== taskId);
+                else t.lastDone = new Date().toDateString();
+                save(); renderTasks();
+            }
+            notify('✅ ЗАДАЧА ЗАВЕРШЕНА', `Готово: ${name}`, false);
+        }
+    }
+
+    function stopTask() { finishTask(false); }
+
+    // ── Задачи ──
     function addTask() {
         const n = document.getElementById('tName').value.trim();
-        const t = document.getElementById('tTime').value;
-        const d = document.getElementById('tDur').value;
+        const tm = document.getElementById('tTime').value;
+        const d = parseInt(document.getElementById('tDur').value);
         const r = document.getElementById('tRepeat').value;
-        if (!n || !t || !d) return;
-        tasks.push({ id: Date.now(), name: n, start: t, dur: parseInt(d), repeat: r, lastDone: '' });
+        if (!n || !tm || !d || d < 1) { alert('Заполни название, время и длительность (минимум 1 мин).'); return; }
+        tasks.push({ id: Date.now(), name: n, start: tm, dur: d, repeat: r, lastDone: '' });
         tasks.sort((a, b) => a.start.localeCompare(b.start));
         save(); renderTasks();
         document.getElementById('tName').value = '';
         document.getElementById('tDur').value = '';
     }
 
-    // FIX 5: XSS-безопасный рендер через createElement
     function renderTasks() {
         const list = document.getElementById('taskList');
         const today = new Date().toDateString();
         list.innerHTML = '';
         tasks.forEach(t => {
             const done = t.lastDone === today;
-            const typeLabel = t.repeat === 'weekdays' ? '📅 Будни'
-                : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
-
+            const label = t.repeat === 'weekdays' ? '📅 Будни' : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
             const li = document.createElement('li');
             li.className = 'task-item' + (done ? ' done' : '');
 
             const info = document.createElement('div');
             const small = document.createElement('small');
             small.style = 'display:block;color:#95a5a6';
-            small.textContent = typeLabel;
+            small.textContent = label;
             const main = document.createElement('span');
-            main.textContent = `${t.start} — ${t.name}`;
-            info.appendChild(small);
-            info.appendChild(main);
+            main.textContent = `${t.start} — ${t.name} (${t.dur} мин)`;
+            info.append(small, main);
 
             const btn = document.createElement('button');
             btn.className = 'btn-del';
             btn.textContent = '✕';
             btn.onclick = () => deleteTask(t.id);
 
-            li.appendChild(info);
-            li.appendChild(btn);
+            li.append(info, btn);
             list.appendChild(li);
         });
     }
 
     function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
-    function save() { localStorage.setItem('pomo_v40_tasks', JSON.stringify(tasks)); }
+    function save() { store.set('pomo_tasks', tasks); }
 
     fetchPrayers();
     renderTasks();
+    tick();
     setInterval(tick, 1000);
 </script>
 </body>
