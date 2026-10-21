@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>PomoDag · Портфель проектов</title>
+<style>
+:root{--ink:#102838;--soft:#5b6c77;--bg:#f5f7f8;--card:#fff;--border:#dfe6e8;--accent:#3b7653;--lime:#d9edbb;--danger:#a34235}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1140px;margin:0 auto;padding:24px 18px 52px}a{color:var(--accent)}button,input,select{font:inherit}button{cursor:pointer}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}h1{font-size:clamp(26px,4vw,38px);line-height:1.1;letter-spacing:-.04em;margin:16px 0 8px}
+h2{font-size:18px;margin:26px 0 12px}h3{font-size:16px;margin:0 0 7px}.sub{color:var(--soft);max-width:770px}
+.top a{font-weight:700}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--accent);font-weight:800}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0}
+.metric,.panel,.project{background:var(--card);border:1px solid var(--border);border-radius:13px}
+.metric{padding:15px}.metric b{font-size:25px;display:block;margin-top:2px}.metric span{color:var(--soft);font-size:12px}
+.panel{padding:17px;margin:14px 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.upload{border-radius:9px;padding:9px 12px;background:#fff;border:1px solid #b6c5c9;color:var(--ink);font-weight:650}
+button.primary{background:var(--ink);border-color:var(--ink);color:#fff}button:hover,.upload:hover{filter:brightness(.96)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #90bd97}
+input,select{border:1px solid #b6c5c9;border-radius:8px;padding:9px;background:#fff;min-width:0;color:var(--ink)}
+label{font-size:12px;color:var(--soft);display:block;margin-bottom:4px}.field{min-width:0;flex:1}
+.field input,.field select{width:100%}small,.muted{color:var(--soft)}.hint{font-size:12px;color:var(--soft);margin:9px 0 0}
+.filters{margin-top:15px}.filters button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.project{padding:16px;display:flex;flex-direction:column;gap:8px}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pill{display:inline-block;background:#edf3f0;color:#235338;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:800;white-space:nowrap}
+.pill.P0{background:#fce6df;color:#903c2d}.pill.P1{background:#faefce;color:#7b5a1a}
+.pill.PARK{background:#eef0f2;color:#606c75}.next{border-left:3px solid #80af90;padding:5px 0 5px 10px}
+.progress{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:auto;padding-top:8px}
+.progress button{font-size:12px}.done{color:var(--accent);font-weight:700}
+.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#edf5f0;border-radius:6px}
+.warning{border-left-color:var(--danger);background:#fdf0eb}.hidden{display:none!important}.empty{text-align:center;padding:25px;color:var(--soft);background:#fff;border:1px dashed #bdcbd1;border-radius:12px}
+.mini-form{display:grid;grid-template-columns:1.15fr .6fr .7fr 1.3fr 1fr .5fr;gap:8px;align-items:end}
+.mini-form>div{min-width:0}.mini-form input,.mini-form select{width:100%}.hr{height:1px;background:var(--border);margin:16px 0}
+@media(max-width:830px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.two,.grid{grid-template-columns:1fr}.mini-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:440px){main{padding:17px 12px 40px}.metric{padding:12px}.metric b{font-size:21px}.panel{padding:13px}.mini-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="top"><span class="eyebrow">PomoDag / Portfolio OS · beta</span><a href="./index.html">← Таймер PomoDag</a></div>
+<h1>Меньше проектов. Больше результата.</h1>
+<p class="sub">Портфельный дашборд для принятия решений. Здесь нет автозапуска, публикаций, серверной синхронизации и подключения к 1С. Личные данные хранятся в браузере.</p>
+</header>
+<section class="metrics" aria-label="Сводные показатели">
+<div class="metric"><span>Проектов в реестре</span><b id="m-all">0</b></div>
+<div class="metric"><span>Активные ставки (P0/P1)</span><b id="m-active">0</b></div>
+<div class="metric"><span>Выполнено действий</span><b id="m-done">0</b></div>
+<div class="metric"><span>План на сегодня, мин / 240</span><b id="m-min">0</b></div>
+</section>
+<div id="messages" class="notice" role="status">Сначала импортируйте личный JSON-файл портфеля или добавьте проекты вручную. Код страницы не содержит бизнес-данных.</div>
+<div class="two">
+<section class="panel">
+<h2 style="margin-top:0">Портфель и резервная копия</h2>
+<div class="controls">
+<label class="upload" for="upload" style="display:inline-block;color:var(--ink);margin:0;cursor:pointer">Импортировать JSON</label>
+<input id="upload" type="file" accept=".json,application/json" class="hidden">
+<button id="export">Экспортировать JSON</button>
+</div>
+<p class="hint">Импорт заменяет только текущий локальный портфель. Задачи PomoDag он не меняет. Перед импортом существующий портфель можно экспортировать.</p>
+</section>
+<section class="panel">
+<h2 style="margin-top:0">Поставить действие в PomoDag</h2>
+<div class="controls">
+<div class="field" style="max-width:170px"><label for="schedule-time">Время сегодня</label><input type="time" id="schedule-time" required></div>
+<div class="field" style="max-width:160px"><label for="repeat">Повтор</label><select id="repeat"><option value="none">Один раз</option><option value="weekdays">Будни</option><option value="daily">Ежедневно</option></select></div>
+</div>
+<p class="hint">Нажмите «В PomoDag» у проекта. Добавление только по клику. При совпадении времени, превышении дневного лимита или пересечении с 20:00 действие не добавляется.</p>
+</section>
+</div>
+<section class="panel">
+<h2 style="margin-top:0">Новый проект</h2>
+<form id="new-project" class="mini-form">
+<div><label for="name">Название</label><input id="name" required maxlength="90" placeholder="Проект"></div>
+<div><label for="priority">Приоритет</label><select id="priority"><option>P0</option><option>P1</option><option>P2</option><option>PARK</option></select></div>
+<div><label for="mode">Режим</label><select id="mode"><option>В работе</option><option>Поддержка</option><option>Пауза</option></select></div>
+<div><label for="action">Следующее действие</label><input id="action" maxlength="250" placeholder="Что сделать, а не изучить"></div>
+<div><label for="kpi">Критерий результата</label><input id="kpi" maxlength="220" placeholder="Факт или метрика"></div>
+<div><label for="minutes">Мин</label><input type="number" id="minutes" min="5" max="180" value="45"></div>
+<div style="grid-column:1/-1"><button type="submit" class="primary">Добавить в портфель</button></div>
+</form>
+</section>
+<section>
+<div class="top"><h2>Реестр проектов</h2><span id="count" class="muted"></span></div>
+<div class="controls filters" id="filters">
+<button type="button" data-filter="ALL" class="active">Все</button>
+<button type="button" data-filter="P0">P0</button>
+<button type="button" data-filter="P1">P1</button>
+<button type="button" data-filter="P2">P2</button>
+<button type="button" data-filter="PARK">Пауза</button>
+</div>
+<div id="projects" class="grid"></div>
+</section>
+<section class="panel">
+<h2 style="margin-top:0">Ограничения интеграции</h2>
+<p class="muted">Это та же область хранения браузера, что и у <strong>shmlr.github.io/pomo</strong>, если страница размещена в этом репозитории. PomoDag читает задачи из <code>pomo_tasks</code>. Портфель хранится отдельно в <code>r01_portfolio_v1</code>. Другой браузер и телефон данные автоматически не получают.</p>
+<p class="muted">PomoDag не знает даты одноразовых задач: при выборе «Один раз» действие запускается при следующем совпадении времени. Для контроля мы разрешаем ставить такие задачи только на оставшуюся часть текущего дня. Сигналы действуют по ограничениям основной вкладки PomoDag.</p>
+</section>
+</main>
+<script>
+(function(){
+'use strict';
+var KEY='r01_portfolio_v1', POMO='pomo_tasks', LIMIT=240, projects=[],filter='ALL';
+var $=function(id){return document.getElementById(id);};
+function read(key, fallback){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}}
+function write(key,value){localStorage.setItem(key,JSON.stringify(value));}
+function inform(message,error){var el=$('messages');el.textContent=message;el.className='notice'+(error?' warning':'');}
+function priority(p){return ['P0','P1','P2','PARK'].indexOf(p)>=0?p:'PARK';}
+function clean(s,len){return String(s===undefined||s===null?'':s).trim().slice(0,len);}
+function minutes(m){var n=Number(m);return Number.isFinite(n)&&n>=5&&n<=180?Math.round(n):45;}
+function sanitize(raw){if(!Array.isArray(raw)||raw.length>100)throw Error('Нужен массив проектов, не больше 100 записей.');
+ var used=new Set();
+ return raw.map(function(p,i){
+ if(!p||typeof p!=='object'||Array.isArray(p))throw Error('Неверный проект №'+(i+1));
+ var id=clean(p.id,80)||'item-'+i;
+ if(used.has(id))throw Error('Повторяющийся ID: '+id);
+ used.add(id);
+ var name=clean(p.name,90);if(!name)throw Error('Не указано название проекта №'+(i+1));
+ return {id:id,name:name,priority:priority(p.priority),mode:clean(p.mode,30)||'Пауза',
+ action:clean(p.action,250),kpi:clean(p.kpi,220),minutes:minutes(p.minutes),done:p.done===true};
+ });
+}
+function save(){write(KEY,projects);}
+function toMin(time){if(!/^\d\d:\d\d$/.test(time))return NaN;var x=time.split(':').map(Number);return x[0]<24&&x[1]<60?x[0]*60+x[1]:NaN;}
+function todayTasks(){var day=new Date().getDay();var ts=read(POMO,[]);if(!Array.isArray(ts))return [];return ts.filter(function(t){
+ return t&&Number(t.dur)>0&&(t.repeat==='none'||t.repeat==='daily'||(t.repeat==='weekdays'&&day>=1&&day<=5));
+ });}
+function render(){
+ $('m-all').textContent=projects.length;
+ $('m-active').textContent=projects.filter(function(p){return p.priority==='P0'||p.priority==='P1';}).length;
+ $('m-done').textContent=projects.filter(function(p){return p.done;}).length;
+ var total=todayTasks().reduce(function(s,t){return s+Number(t.dur||0);},0);
+ $('m-min').textContent=total;
+ $('m-min').style.color=total>LIMIT?'#a34235':'';
+ var filtered=projects.filter(function(p){return filter==='ALL'||p.priority===filter;});
+ $('count').textContent=filtered.length+' из '+projects.length;
+ var root=$('projects');root.textContent='';
+ if(filtered.length===0){var empty=document.createElement('div');empty.className='empty';empty.textContent=projects.length?'Нет проектов в выбранной группе.':'Реестр пока пуст. Импортируйте личную конфигурацию.';root.appendChild(empty);return;}
+ filtered.forEach(function(p){
+ var card=document.createElement('article');card.className='project';
+ var head=document.createElement('div');head.className='head';
+ var title=document.createElement('h3');title.textContent=p.name;
+ var pill=document.createElement('span');pill.className='pill '+p.priority;pill.textContent=p.priority;
+ head.append(title,pill);card.append(head);
+ var mode=document.createElement('small');mode.textContent='Режим: '+p.mode;card.append(mode);
+ var action=document.createElement('div');action.className='next';action.textContent='Следующий шаг: '+(p.action||'не задан');card.append(action);
+ var kpi=document.createElement('small');kpi.textContent='Критерий: '+(p.kpi||'не задан')+' · '+p.minutes+' мин';card.append(kpi);
+ var foot=document.createElement('div');foot.className='progress';
+ var mark=document.createElement('button');mark.type='button';mark.textContent=p.done?'↩ Вернуть в работу':'✓ Выполнено';
+ mark.onclick=function(){p.done=!p.done;try{save();render();}catch(e){inform('Не удалось сохранить статус: '+e.message,true);}};
+ var push=document.createElement('button');push.type='button';push.className='primary';push.textContent='В PomoDag';
+ push.disabled=!p.action||p.priority==='PARK'||p.done;
+ push.onclick=function(){sendTask(p);};
+ foot.append(mark,push);card.append(foot);root.append(card);
+ });
+}
+function sendTask(p){
+ var start=$('schedule-time').value, m=toMin(start), dur=p.minutes, now=new Date();
+ var nowMin=now.getHours()*60+now.getMinutes();
+ if(!Number.isFinite(m)){inform('Выберите корректное время для задачи.',true);return;}
+ if(now.getDay()===0){inform('Воскресенье сохранено без рабочих задач. Используйте основной PomoDag для личных дел.',true);return;}
+ if(m<=nowMin){inform('Выберите время позже текущего: одноразовые задачи PomoDag не имеют поля даты.',true);return;}
+ if(m+dur>1440){inform('Задача выходит за пределы дня.',true);return;}
+ if(m<1245&&m+dur>1185){inform('Промежуток вокруг 20:00 зарезервирован. Выберите другое время.',true);return;}
+ var old=read(POMO,[]);if(!Array.isArray(old)){inform('Хранилище PomoDag имеет неожиданный формат. Ничего не изменено.',true);return;}
+ if(old.some(function(t){return t.portfolioId===p.id||t.name==='[Портфель] '+p.name+': '+p.action;})){inform('Эта задача уже добавлена. Проверьте PomoDag.',true);return;}
+ var today=todayTasks();
+ if(today.some(function(t){var ts=toMin(t.start),te=ts+Number(t.dur||0);return Number.isFinite(ts)&&m<te&&m+dur>ts;})){
+ inform('Это время пересекается с уже запланированной задачей.',true);return;
+ }
+ var used=today.reduce(function(s,t){return s+Number(t.dur||0);},0);
+ if(used+dur>LIMIT){inform('Превышение лимита 240 мин: '+used+' + '+dur+'. Освободите время.',true);return;}
+ var repeat=$('repeat').value;if(['none','daily','weekdays'].indexOf(repeat)<0)repeat='none';
+ var ids=old.map(function(t){return Number(t.id)||0;});
+ var id=Math.max(Date.now(),...ids)+1;
+ var task={id:id,name:'[Портфель] '+p.name+': '+p.action,start:start,dur:dur,repeat:repeat,lastDone:'',portfolioId:p.id};
+ try{
+ var updated=old.concat([task]).sort(function(a,b){return String(a.start).localeCompare(String(b.start));});
+ write(POMO,updated);inform('Задача добавлена на '+start+' ('+dur+' мин). Откройте/обновите основной PomoDag для проверки.');
+ render();
+ }catch(e){inform('Не удалось записать задачу в браузер: '+e.message,true);}
+}
+$('filters').addEventListener('click',function(e){var b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;Array.from($('filters').querySelectorAll('button')).forEach(function(x){x.classList.toggle('active',x===b);});render();});
+$('new-project').addEventListener('submit',function(e){e.preventDefault();
+ var n=$('name').value.trim();if(!n)return;
+ var item={id:'local-'+Date.now(),name:n,priority:$('priority').value,mode:$('mode').value,
+ action:$('action').value,kpi:$('kpi').value,minutes:Number($('minutes').value),done:false};
+ try{projects=sanitize(projects.concat([item]));save();render();this.reset();inform('Проект сохранён локально.');}
+ catch(err){inform('Не сохранено: '+err.message,true);}
+});
+$('upload').addEventListener('change',function(e){
+ var f=e.target.files&&e.target.files[0];if(!f)return;
+ if(f.size>250000){inform('Файл слишком большой. Максимум 250 КБ.',true);this.value='';return;}
+ var reader=new FileReader();
+ reader.onload=function(){
+ try{var obj=JSON.parse(String(reader.result));var arr=sanitize(Array.isArray(obj)?obj:obj.projects);
+ if(projects.length&&!confirm('Заменить локальный портфель из '+projects.length+' проектов? Текущие данные можно заранее экспортировать.'))return;
+ write(KEY,arr);projects=arr;filter='ALL';$('filters').querySelector('[data-filter="ALL"]').click();
+ inform('Импортировано проектов: '+arr.length+'. Ничего не отправлялось на сервер.');
+ }catch(err){inform('Ошибка импорта: '+err.message,true);}
+ };reader.onerror=function(){inform('Не удалось прочитать файл.',true);};reader.readAsText(f);this.value='';
+});
+$('export').addEventListener('click',function(){
+ try{var file=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),projects:projects},null,2)],{type:'application/json'});
+ var url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='pomodag-portfolio-backup.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);
+ inform('Экспорт подготовлен. Проверьте папку загрузок.');
+ }catch(e){inform('Ошибка экспорта: '+e.message,true);}
+});
+window.addEventListener('storage',function(e){if(e.key===POMO)render();if(e.key===KEY){try{projects=sanitize(read(KEY,[]));render();}catch(err){inform('Ошибка синхронизации портфеля.',true);}}});
+try{projects=sanitize(read(KEY,[]));render();}catch(e){inform('Некорректные локальные данные: '+e.message+'. Сделайте резервную копию перед заменой.',true);}
+})();
+</script>
+</body></html>
