@@ -47,7 +47,7 @@ label{font-size:12px;color:var(--soft);display:block;margin-bottom:4px}.field{mi
 </header>
 <section class="metrics" aria-label="Сводные показатели">
 <div class="metric"><span>Проектов в реестре</span><b id="m-all">0</b></div>
-<div class="metric"><span>Активные ставки (P0/P1)</span><b id="m-active">0</b></div>
+<div class="metric"><span>Активные ставки</span><b id="m-active">0</b></div>
 <div class="metric"><span>Выполнено действий</span><b id="m-done">0</b></div>
 <div class="metric"><span>План на сегодня, мин / 240</span><b id="m-min">0</b></div>
 </section>
@@ -80,7 +80,7 @@ label{font-size:12px;color:var(--soft);display:block;margin-bottom:4px}.field{mi
 <div><label for="action">Следующее действие</label><input id="action" maxlength="250" placeholder="Что сделать, а не изучить"></div>
 <div><label for="kpi">Критерий результата</label><input id="kpi" maxlength="220" placeholder="Факт или метрика"></div>
 <div><label for="minutes">Мин</label><input type="number" id="minutes" min="5" max="180" value="45"></div>
-<div style="grid-column:1/-1"><button type="submit" class="primary">Добавить в портфель</button></div>
+<div style="grid-column:1/-1"><button type="submit" id="form-save" class="primary">Добавить в портфель</button></div>
 </form>
 </section>
 <section>
@@ -103,7 +103,7 @@ label{font-size:12px;color:var(--soft);display:block;margin-bottom:4px}.field{mi
 <script>
 (function(){
 'use strict';
-var KEY='r01_portfolio_v1', POMO='pomo_tasks', LIMIT=240, projects=[],filter='ALL';
+var KEY='r01_portfolio_v1', POMO='pomo_tasks', LIMIT=240, projects=[],filter='ALL',editingId=null;
 var $=function(id){return document.getElementById(id);};
 function read(key, fallback){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}}
 function write(key,value){localStorage.setItem(key,JSON.stringify(value));}
@@ -130,7 +130,7 @@ function todayTasks(){var day=new Date().getDay();var ts=read(POMO,[]);if(!Array
  });}
 function render(){
  $('m-all').textContent=projects.length;
- $('m-active').textContent=projects.filter(function(p){return p.priority==='P0'||p.priority==='P1';}).length;
+ $('m-active').textContent=projects.filter(function(p){return p.mode==='В работе';}).length;
  $('m-done').textContent=projects.filter(function(p){return p.done;}).length;
  var total=todayTasks().reduce(function(s,t){return s+Number(t.dur||0);},0);
  $('m-min').textContent=total;
@@ -151,10 +151,14 @@ function render(){
  var foot=document.createElement('div');foot.className='progress';
  var mark=document.createElement('button');mark.type='button';mark.textContent=p.done?'↩ Вернуть в работу':'✓ Выполнено';
  mark.onclick=function(){p.done=!p.done;try{save();render();}catch(e){inform('Не удалось сохранить статус: '+e.message,true);}};
+ var edit=document.createElement('button');edit.type='button';edit.textContent='Изменить';
+ edit.onclick=function(){editingId=p.id;$('name').value=p.name;$('priority').value=p.priority;$('mode').value=p.mode;
+ $('action').value=p.action;$('kpi').value=p.kpi;$('minutes').value=p.minutes;
+ $('form-save').textContent='Сохранить изменения';$('new-project').scrollIntoView({behavior:'smooth',block:'center'});};
  var push=document.createElement('button');push.type='button';push.className='primary';push.textContent='В PomoDag';
  push.disabled=!p.action||p.priority==='PARK'||p.done;
  push.onclick=function(){sendTask(p);};
- foot.append(mark,push);card.append(foot);root.append(card);
+ foot.append(mark,edit,push);card.append(foot);root.append(card);
  });
 }
 function sendTask(p){
@@ -186,9 +190,11 @@ function sendTask(p){
 $('filters').addEventListener('click',function(e){var b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;Array.from($('filters').querySelectorAll('button')).forEach(function(x){x.classList.toggle('active',x===b);});render();});
 $('new-project').addEventListener('submit',function(e){e.preventDefault();
  var n=$('name').value.trim();if(!n)return;
- var item={id:'local-'+Date.now(),name:n,priority:$('priority').value,mode:$('mode').value,
- action:$('action').value,kpi:$('kpi').value,minutes:Number($('minutes').value),done:false};
- try{projects=sanitize(projects.concat([item]));save();render();this.reset();inform('Проект сохранён локально.');}
+ var old=editingId?projects.find(function(p){return p.id===editingId;}):null;
+ var item={id:editingId||'local-'+Date.now(),name:n,priority:$('priority').value,mode:$('mode').value,
+ action:$('action').value,kpi:$('kpi').value,minutes:Number($('minutes').value),done:old?old.done:false};
+ try{projects=sanitize(old?projects.map(function(p){return p.id===editingId?item:p;}):projects.concat([item]));
+ save();render();this.reset();editingId=null;$('form-save').textContent='Добавить в портфель';inform('Проект сохранён локально.');}
  catch(err){inform('Не сохранено: '+err.message,true);}
 });
 $('upload').addEventListener('change',function(e){
