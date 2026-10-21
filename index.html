@@ -43,6 +43,7 @@
 </head>
 <body>
 <div class="container">
+    <a href="./portfolio.html" style="display:block;text-align:center;font-size:12px;font-weight:700;margin-bottom:12px;color:#276c4f;text-decoration:none">▦ Портфель проектов →</a>
     <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
 
     <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ ЗВУК И УВЕДОМЛЕНИЯ</button>
@@ -334,6 +335,16 @@
 
     function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
     function save() { store.set('pomo_tasks', tasks); }
+
+    // Обновляем задачи при изменении из другой вкладки того же origin.
+    // Портфель никогда не удаляет существующие записи сам.
+    window.addEventListener('storage', (e) => {
+        if (e.key !== 'pomo_tasks') return;
+        const incoming = store.get('pomo_tasks', []);
+        if (!Array.isArray(incoming)) return;
+        tasks = incoming;
+        renderTasks();
+    });
 
     fetchPrayers();
     renderTasks();
