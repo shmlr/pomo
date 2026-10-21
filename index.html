@@ -43,6 +43,7 @@
 </head>
 <body>
 <div class="container">
+    <a href="./portfolio.html" style="display:block;text-align:center;font-size:12px;font-weight:700;margin-bottom:12px;color:#276c4f;text-decoration:none">▦ Портфель проектов →</a>
     <div class="settings-toggle" onclick="document.getElementById('offset-panel').classList.toggle('open')">⚙</div>
 
     <button id="init-btn" onclick="activateAlerts()">🔔 ВКЛЮЧИТЬ ЗВУК И УВЕДОМЛЕНИЯ</button>
@@ -79,6 +80,7 @@
             <option value="none">Один раз</option>
             <option value="daily">Каждый день</option>
             <option value="weekdays">Будни (Пн-Пт)</option>
+            <option value="sixdays">Пн-Сб</option>
         </select>
         <button class="btn-add" onclick="addTask()">ДОБАВИТЬ В ПЛАН</button>
     </div>
@@ -238,7 +240,8 @@
         const day = now.getDay();
         for (const t of tasks) {
             const shouldRun = t.repeat === 'none' || t.repeat === 'daily' ||
-                              (t.repeat === 'weekdays' && day >= 1 && day <= 5);
+                              (t.repeat === 'weekdays' && day >= 1 && day <= 5) ||
+                              (t.repeat === 'sixdays' && day >= 1 && day <= 6);
             if (t.start === cur && t.lastDone !== today && !activeTimer && shouldRun) {
                 notify('⏱️ ПОРА ЗА ЗАДАЧУ', `Начинаем: ${t.name}`, false);
                 startTask(t.id);
@@ -310,7 +313,7 @@
         list.innerHTML = '';
         tasks.forEach(t => {
             const done = t.lastDone === today;
-            const label = t.repeat === 'weekdays' ? '📅 Будни' : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
+            const label = t.repeat === 'sixdays' ? '📅 Пн-Сб' : t.repeat === 'weekdays' ? '📅 Будни' : t.repeat === 'daily' ? '🔄 Ежедневно' : '📌 Разово';
             const li = document.createElement('li');
             li.className = 'task-item' + (done ? ' done' : '');
 
@@ -334,6 +337,16 @@
 
     function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }
     function save() { store.set('pomo_tasks', tasks); }
+
+    // Обновляем задачи при изменении из другой вкладки того же origin.
+    // Портфель никогда не удаляет существующие записи сам.
+    window.addEventListener('storage', (e) => {
+        if (e.key !== 'pomo_tasks') return;
+        const incoming = store.get('pomo_tasks', []);
+        if (!Array.isArray(incoming)) return;
+        tasks = incoming;
+        renderTasks();
+    });
 
     fetchPrayers();
     renderTasks();
