@@ -66,9 +66,9 @@ label{font-size:12px;color:var(--soft);display:block;margin-bottom:4px}.field{mi
 <h2 style="margin-top:0">Поставить действие в PomoDag</h2>
 <div class="controls">
 <div class="field" style="max-width:170px"><label for="schedule-time">Время сегодня</label><input type="time" id="schedule-time" required></div>
-<div class="field" style="max-width:160px"><label for="repeat">Повтор</label><select id="repeat"><option value="none">Один раз</option><option value="weekdays">Будни</option><option value="daily">Ежедневно</option></select></div>
+<div class="field" style="max-width:160px"><label for="repeat">Повтор</label><select id="repeat"><option value="none">Один раз</option><option value="weekdays">Будни</option><option value="sixdays">Пн-Сб</option></select></div>
 </div>
-<p class="hint">Нажмите «В PomoDag» у проекта. Добавление только по клику. При совпадении времени, превышении дневного лимита или пересечении с 20:00 действие не добавляется.</p>
+<p class="hint">Нажмите «В PomoDag» у проекта. Добавление только по клику. При конфликте времени, дневного лимита или резерва вокруг 20:00 действие не добавляется. Повторы на будущие дни проверяются при ручном контроле расписания.</p>
 </section>
 </div>
 <section class="panel">
@@ -126,7 +126,7 @@ function sanitize(raw){if(!Array.isArray(raw)||raw.length>100)throw Error('Ну�
 function save(){write(KEY,projects);}
 function toMin(time){if(!/^\d\d:\d\d$/.test(time))return NaN;var x=time.split(':').map(Number);return x[0]<24&&x[1]<60?x[0]*60+x[1]:NaN;}
 function todayTasks(){var day=new Date().getDay();var ts=read(POMO,[]);if(!Array.isArray(ts))return [];return ts.filter(function(t){
- return t&&Number(t.dur)>0&&(t.repeat==='none'||t.repeat==='daily'||(t.repeat==='weekdays'&&day>=1&&day<=5));
+ return t&&Number(t.dur)>0&&(t.repeat==='none'||t.repeat==='daily'||(t.repeat==='weekdays'&&day>=1&&day<=5)||(t.repeat==='sixdays'&&day>=1&&day<=6));
  });}
 function render(){
  $('m-all').textContent=projects.length;
@@ -156,7 +156,7 @@ function render(){
  $('action').value=p.action;$('kpi').value=p.kpi;$('minutes').value=p.minutes;
  $('form-save').textContent='Сохранить изменения';$('new-project').scrollIntoView({behavior:'smooth',block:'center'});};
  var push=document.createElement('button');push.type='button';push.className='primary';push.textContent='В PomoDag';
- push.disabled=!p.action||p.priority==='PARK'||p.done;
+ push.disabled=!p.action||p.priority==='PARK'||p.mode==='Пауза'||p.done;
  push.onclick=function(){sendTask(p);};
  foot.append(mark,edit,push);card.append(foot);root.append(card);
  });
@@ -177,7 +177,7 @@ function sendTask(p){
  }
  var used=today.reduce(function(s,t){return s+Number(t.dur||0);},0);
  if(used+dur>LIMIT){inform('Превышение лимита 240 мин: '+used+' + '+dur+'. Освободите время.',true);return;}
- var repeat=$('repeat').value;if(['none','daily','weekdays'].indexOf(repeat)<0)repeat='none';
+ var repeat=$('repeat').value;if(['none','weekdays','sixdays'].indexOf(repeat)<0)repeat='none';
  var ids=old.map(function(t){return Number(t.id)||0;});
  var id=Math.max(Date.now(),...ids)+1;
  var task={id:id,name:'[Портфель] '+p.name+': '+p.action,start:start,dur:dur,repeat:repeat,lastDone:'',portfolioId:p.id};
